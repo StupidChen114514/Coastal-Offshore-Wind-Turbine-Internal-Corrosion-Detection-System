@@ -1,0 +1,1682 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>海上风电塔筒腐蚀检测系统 - 便携演示版</title>
+<style>
+/* ===== CSS Reset & Base ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg-primary: #0d1117;
+  --bg-secondary: #161b22;
+  --bg-tertiary: #21262d;
+  --bg-card: #1c2128;
+  --border: #30363d;
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --text-muted: #6e7681;
+  --accent-blue: #58a6ff;
+  --accent-green: #3fb950;
+  --accent-orange: #d29922;
+  --accent-red: #f85149;
+  --accent-purple: #a371f7;
+  --accent-cyan: #39d2c0;
+  --danger: #da3633;
+  --warning: #e3b341;
+  --info: #58a6ff;
+  --success: #3fb950;
+  --shadow: 0 1px 3px rgba(0,0,0,0.4);
+  --radius: 6px;
+  --transition: 0.2s ease;
+}
+html { font-size: 14px; scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* ===== Layout ===== */
+.app-header {
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow);
+}
+.app-header h1 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--accent-cyan);
+  letter-spacing: 0.5px;
+}
+.header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+}
+.status-dot.online { background: var(--accent-green); box-shadow: 0 0 6px var(--accent-green); }
+.status-dot.warning { background: var(--accent-orange); box-shadow: 0 0 6px var(--accent-orange); }
+.status-dot.error { background: var(--accent-red); box-shadow: 0 0 6px var(--accent-red); }
+
+.tab-nav {
+  display: flex;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px;
+  gap: 2px;
+  overflow-x: auto;
+}
+.tab-btn {
+  padding: 10px 18px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.9rem;
+  border-bottom: 2px solid transparent;
+  transition: var(--transition);
+  white-space: nowrap;
+  font-family: inherit;
+}
+.tab-btn:hover { color: var(--text-primary); }
+.tab-btn.active { color: var(--accent-cyan); border-bottom-color: var(--accent-cyan); }
+.tab-btn .badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: var(--accent-red);
+  color: #fff;
+  line-height: 1.4;
+}
+
+.tab-content { display: none; padding: 20px; }
+.tab-content.active { display: block; }
+
+.main-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+
+/* ===== Cards ===== */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+.card h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 8px;
+}
+.card h3 .icon { margin-right: 6px; }
+
+/* ===== Form ===== */
+.form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+.form-group { display: flex; flex-direction: column; gap: 4px; }
+.form-group label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+.form-group input, .form-group select {
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-family: inherit;
+  transition: border-color var(--transition);
+}
+.form-group input:focus, .form-group select:focus {
+  outline: none;
+  border-color: var(--accent-cyan);
+}
+.form-group input[type="number"] { font-family: 'Consolas', 'Courier New', monospace; }
+.btn {
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-family: inherit;
+  font-weight: 500;
+  transition: var(--transition);
+  color: var(--text-primary);
+}
+.btn-primary { background: var(--accent-blue); border-color: var(--accent-blue); color: #0d1117; }
+.btn-primary:hover { background: #79c0ff; }
+.btn-success { background: var(--accent-green); border-color: var(--accent-green); color: #0d1117; }
+.btn-success:hover { background: #56d364; }
+.btn-danger { background: var(--danger); border-color: var(--danger); }
+.btn-danger:hover { background: #f85149; }
+.btn-warning { background: var(--warning); border-color: var(--warning); color: #0d1117; }
+.btn-outline { background: transparent; }
+.btn-outline:hover { background: var(--bg-tertiary); }
+.btn-sm { padding: 4px 10px; font-size: 0.75rem; }
+.btn-group { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+
+/* ===== Tables ===== */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+th { font-weight: 600; color: var(--text-secondary); font-size: 0.78rem; background: var(--bg-tertiary); position: sticky; top: 0; }
+tr:hover { background: var(--bg-tertiary); }
+
+/* ===== Result Display ===== */
+.result-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.85rem;
+}
+.result-row:last-child { border-bottom: none; }
+.result-label { color: var(--text-secondary); }
+.result-value { font-family: 'Consolas', 'Courier New', monospace; font-weight: 500; }
+.result-value.good { color: var(--accent-green); }
+.result-value.warn { color: var(--accent-orange); }
+.result-value.bad { color: var(--accent-red); }
+.result-value.info { color: var(--accent-cyan); }
+
+/* ===== Pipeline Steps ===== */
+.pipeline { display: flex; flex-direction: column; gap: 8px; }
+.pipeline-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius);
+  border-left: 3px solid var(--border);
+}
+.pipeline-step.pass { border-left-color: var(--accent-green); }
+.pipeline-step.warn { border-left-color: var(--accent-orange); }
+.pipeline-step.fail { border-left-color: var(--accent-red); }
+.pipeline-step .step-num {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; font-weight: 700;
+  flex-shrink: 0;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+}
+.pipeline-step .step-info { flex: 1; min-width: 0; }
+.pipeline-step .step-name { font-weight: 600; font-size: 0.85rem; }
+.pipeline-step .step-detail { font-size: 0.78rem; color: var(--text-secondary); }
+.pipeline-step .step-value {
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ===== Alarm Badges ===== */
+.alarm-level { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: 700; }
+.alarm-level.l1 { background: #2a4a6b; color: var(--info); }
+.alarm-level.l2 { background: #4a3520; color: var(--warning); }
+.alarm-level.l3 { background: #4a2020; color: var(--accent-orange); }
+.alarm-level.l4 { background: #4a1010; color: var(--accent-red); }
+
+.alarm-status { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: 600; }
+.alarm-status.active { background: #4a1010; color: var(--accent-red); }
+.alarm-status.acknowledged { background: #4a3520; color: var(--warning); }
+.alarm-status.resolved { background: #1a3a1a; color: var(--accent-green); }
+
+/* ===== ISO Grade Cards ===== */
+.grade-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+.grade-card {
+  background: var(--bg-tertiary);
+  border-radius: var(--radius);
+  padding: 14px;
+  text-align: center;
+  border: 1px solid var(--border);
+}
+.grade-card .grade-label { font-size: 1.5rem; font-weight: 700; }
+.grade-card .grade-name { font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px; }
+.grade-card.c1 { border-color: #39d2c0; }
+.grade-card.c1 .grade-label { color: #39d2c0; }
+.grade-card.cx { border-color: #f85149; }
+.grade-card.cx .grade-label { color: #f85149; }
+.grade-card.default { border-color: #58a6ff; }
+.grade-card.default .grade-label { color: #58a6ff; }
+
+/* ===== Prediction Bars ===== */
+.prediction-bars { display: flex; flex-direction: column; gap: 8px; }
+.prediction-bar-item { display: flex; align-items: center; gap: 10px; }
+.prediction-bar-item .year-label { width: 50px; font-size: 0.8rem; color: var(--text-secondary); text-align: right; }
+.prediction-bar-item .bar-track { flex: 1; height: 20px; background: var(--bg-tertiary); border-radius: 10px; overflow: hidden; position: relative; }
+.prediction-bar-item .bar-fill { height: 100%; border-radius: 10px; background: linear-gradient(90deg, #3fb950, #d29922, #f85149); transition: width 0.5s ease; }
+.prediction-bar-item .bar-value { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 0.72rem; font-weight: 600; color: #fff; }
+
+/* ===== Charts Simple ===== */
+.chart-area { width: 100%; height: 200px; position: relative; background: var(--bg-tertiary); border-radius: var(--radius); }
+
+/* ===== Stats Grid ===== */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; }
+.stat-item { text-align: center; padding: 10px; background: var(--bg-tertiary); border-radius: var(--radius); }
+.stat-value { font-size: 1.3rem; font-weight: 700; }
+.stat-label { font-size: 0.72rem; color: var(--text-secondary); margin-top: 2px; }
+
+/* ===== Eta Gauge ===== */
+.eta-gauge { text-align: center; padding: 16px; }
+.eta-circle {
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  border: 8px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  position: relative;
+  transition: border-color 0.3s;
+}
+.eta-circle.safe { border-color: #39d2c0; }
+.eta-circle.warning { border-color: #d29922; }
+.eta-circle.danger { border-color: #f85149; }
+.eta-value { font-size: 1.8rem; font-weight: 700; }
+
+/* ===== Log ===== */
+.log-container {
+  background: #0d1117;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 0.78rem;
+}
+.log-entry { padding: 3px 0; border-bottom: 1px solid rgba(48,54,61,0.5); }
+.log-entry .ts { color: var(--text-muted); margin-right: 8px; }
+.log-entry.info { color: var(--accent-cyan); }
+.log-entry.warn { color: var(--accent-orange); }
+.log-entry.error { color: var(--accent-red); }
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .tab-nav { padding: 0 8px; }
+  .tab-btn { padding: 8px 10px; font-size: 0.78rem; }
+  .main-grid { grid-template-columns: 1fr; }
+  .form-grid { grid-template-columns: repeat(2, 1fr); }
+  .grade-cards { grid-template-columns: repeat(2, 1fr); }
+  .app-header h1 { font-size: 1rem; }
+}
+
+/* ===== Quick Preset ===== */
+.preset-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.preset-btn {
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: inherit;
+}
+.preset-btn:hover { color: var(--text-primary); border-color: var(--accent-cyan); }
+
+/* ===== Section Divider ===== */
+.section-title {
+  font-size: 0.9rem;
+  color: var(--accent-cyan);
+  margin: 16px 0 10px;
+  font-weight: 600;
+}
+
+/* ===== Empty State ===== */
+.empty-state { text-align: center; padding: 40px; color: var(--text-muted); }
+.empty-state .icon { font-size: 2rem; margin-bottom: 8px; }
+
+/* ===== Notification Toast ===== */
+.toast-container { position: fixed; top: 60px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 8px; }
+.toast {
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  animation: slideIn 0.3s ease;
+  max-width: 360px;
+}
+.toast.info { background: #1a3a5c; border: 1px solid var(--info); color: var(--info); }
+.toast.warning { background: #3d2e0f; border: 1px solid var(--warning); color: var(--warning); }
+.toast.error { background: #3d1111; border: 1px solid var(--danger); color: var(--danger); }
+@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+</style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header class="app-header">
+  <div>
+    <h1>&#9889; 沿海海上风电塔筒内部腐蚀检测系统 - 便携演示版</h1>
+  </div>
+  <div class="header-actions">
+    <span id="statusIndicator"><span class="status-dot online"></span>系统就绪</span>
+  </div>
+</header>
+
+<!-- ===== TAB NAV ===== -->
+<nav class="tab-nav">
+  <button class="tab-btn active" data-tab="tab-input">&#9998; 数据输入</button>
+  <button class="tab-btn" data-tab="tab-compensation">&#9881; 四级补偿</button>
+  <button class="tab-btn" data-tab="tab-validation">&#9989; 双模验证</button>
+  <button class="tab-btn" data-tab="tab-iso">&#127758; ISO评估</button>
+  <button class="tab-btn" data-tab="tab-alarms">&#128276; 告警管理 <span class="badge" id="alarmBadge" style="display:none">0</span></button>
+</nav>
+
+<!-- ===== TOAST CONTAINER ===== -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ===== TAB 1: DATA INPUT ===== -->
+<div class="tab-content active" id="tab-input">
+  <div class="card" style="margin-bottom:16px">
+    <h3><span class="icon">&#127777;</span> 快速预设</h3>
+    <div class="preset-bar">
+      <button class="preset-btn" onclick="applyPreset('normal')">&#9989; 正常工况</button>
+      <button class="preset-btn" onclick="applyPreset('corrosive')">&#9888; 高盐高湿</button>
+      <button class="preset-btn" onclick="applyPreset('pitting')">&#128308; 点蚀风险</button>
+      <button class="preset-btn" onclick="applyPreset('temperatureshock')">&#127754; 温度冲击</button>
+      <button class="preset-btn" onclick="applyPreset('emergency')">&#128680; 紧急/极端</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3><span class="icon">&#128225;</span> 传感器数据手动输入</h3>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>温度 T (°C)</label>
+        <input type="number" id="input_T" value="25.0" step="0.1">
+      </div>
+      <div class="form-group">
+        <label>相对湿度 RH (%)</label>
+        <input type="number" id="input_RH" value="65.0" step="0.1" min="0" max="100">
+      </div>
+      <div class="form-group">
+        <label>氯离子沉积率 Cl⁻ (mg/m²/day)</label>
+        <input type="number" id="input_Cl" value="5.0" step="0.1" min="0">
+      </div>
+      <div class="form-group">
+        <label>ER探针厚度损失 Δd_ER (μm)</label>
+        <input type="number" id="input_dER" value="0.50" step="0.01" min="0">
+      </div>
+      <div class="form-group">
+        <label>电感探针厚度损失 Δd_Inductive (μm)</label>
+        <input type="number" id="input_dInd" value="0.48" step="0.01" min="0">
+      </div>
+      <div class="form-group">
+        <label>中点电压 V_mid (V)</label>
+        <input type="number" id="input_Vmid" value="2.500" step="0.001">
+      </div>
+      <div class="form-group">
+        <label>差分电压 V_diff (V)</label>
+        <input type="number" id="input_Vdiff" value="0.012" step="0.001">
+      </div>
+      <div class="form-group">
+        <label>等效电感 L_eq (H)</label>
+        <input type="number" id="input_Leq" value="0.001" step="0.0001">
+      </div>
+      <div class="form-group">
+        <label>频率偏移 Δf (Hz)</label>
+        <input type="number" id="input_df" value="0.05" step="0.01">
+      </div>
+      <div class="form-group">
+        <label>采样间隔 (秒)</label>
+        <input type="number" id="input_dt" value="600" step="60" min="60">
+      </div>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="processSingleSample()">&#9654; 处理单次采样</button>
+      <button class="btn btn-outline" onclick="clearResults()">&#8635; 清空结果</button>
+    </div>
+  </div>
+
+  <div id="inputLog" class="log-container" style="margin-top:16px">
+    <div class="empty-state"><span class="icon">&#128203;</span><br>等待数据输入和处理...</div>
+  </div>
+</div>
+
+<!-- ===== TAB 2: ERROR COMPENSATION ===== -->
+<div class="tab-content" id="tab-compensation">
+  <div class="card" style="margin-bottom:16px">
+    <h3><span class="icon">&#128225;</span> 四级误差补偿处理管道</h3>
+    <div class="pipeline" id="pipelineDisplay">
+      <div class="empty-state"><span class="icon">&#9881;</span><br>尚未处理数据，请在"数据输入"页面提交传感器数据</div>
+    </div>
+  </div>
+  <div class="card">
+    <h3><span class="icon">&#128202;</span> 卡尔曼滤波器状态</h3>
+    <div class="main-grid">
+      <div class="stat-item"><div class="stat-value info" id="kalman_delta_d">--</div><div class="stat-label">Δd 滤波值 (μm)</div></div>
+      <div class="stat-item"><div class="stat-value info" id="kalman_cr">--</div><div class="stat-label">CR 滤波值 (μm/yr)</div></div>
+      <div class="stat-item"><div class="stat-value" id="kalman_samples">0</div><div class="stat-label">处理样本数</div></div>
+      <div class="stat-item"><div class="stat-value" id="kalman_warmup">未预热</div><div class="stat-label">预热状态</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAB 3: DUAL-MODE VALIDATION ===== -->
+<div class="tab-content" id="tab-validation">
+  <div class="main-grid">
+    <div class="card">
+      <h3><span class="icon">&#9889;</span> 双模交叉验证结果</h3>
+      <div id="validationResult"><div class="empty-state"><span class="icon">&#9989;</span><br>等待数据处理...</div></div>
+    </div>
+    <div class="card">
+      <h3><span class="icon">&#127919;</span> 点蚀因子 η (Eta)</h3>
+      <div id="etaDisplay" class="eta-gauge">
+        <div class="eta-circle safe"><div class="eta-value">1.00</div></div>
+        <div style="margin-top:8px;font-size:0.8rem;color:var(--text-secondary)">η ≤ 3.0 安全 | 3.0 &lt; η ≤ 5.0 风险 | η &gt; 5.0 穿孔风险</div>
+      </div>
+    </div>
+    <div class="card">
+      <h3><span class="icon">&#128200;</span> 标定曲线 η = f(δ)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>δ (差异比)</th><th>η (点蚀因子)</th></tr></thead>
+          <tbody id="calibCurveBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAB 4: ISO ASSESSMENT ===== -->
+<div class="tab-content" id="tab-iso">
+  <div class="card" style="margin-bottom:16px">
+    <h3><span class="icon">&#127758;</span> ISO 9223/9224 大气腐蚀性评估</h3>
+    <div id="isoResult"><div class="empty-state"><span class="icon">&#127758;</span><br>等待数据处理...</div></div>
+  </div>
+  <div class="main-grid" style="margin-bottom:16px">
+    <div class="card">
+      <h3><span class="icon">&#127782;</span> TOW 湿润时间统计</h3>
+      <div id="towDisplay"><div class="empty-state">等待数据...</div></div>
+    </div>
+    <div class="card">
+      <h3><span class="icon">&#128230;</span> 长期腐蚀预测 (ISO 9224)</h3>
+      <div class="prediction-bars" id="predictionBars">
+        <div class="empty-state">等待数据...</div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <h3><span class="icon">&#128451;</span> 腐蚀性等级与盐度分类</h3>
+    <div class="grade-cards" id="gradeCards"><div class="empty-state" style="grid-column:1/-1">等待评估结果...</div></div>
+  </div>
+</div>
+
+<!-- ===== TAB 5: ALARMS ===== -->
+<div class="tab-content" id="tab-alarms">
+  <div class="card" style="margin-bottom:16px">
+    <h3><span class="icon">&#128680;</span> 活跃告警</h3>
+    <div class="table-wrap">
+      <table id="activeAlarmsTable">
+        <thead><tr><th>时间</th><th>等级</th><th>类型</th><th>详情</th><th>状态</th><th>操作</th></tr></thead>
+        <tbody id="activeAlarmsBody"></tbody>
+      </table>
+      <div id="noAlarms" class="empty-state"><span class="icon">&#9989;</span><br>当前无活跃告警</div>
+    </div>
+  </div>
+  <div class="card">
+    <h3><span class="icon">&#128210;</span> 告警统计</h3>
+    <div class="stats-grid" id="alarmStats">
+      <div class="stat-item"><div class="stat-value" id="stat_total">0</div><div class="stat-label">总告警数</div></div>
+      <div class="stat-item"><div class="stat-value" id="stat_active">0</div><div class="stat-label">活跃</div></div>
+      <div class="stat-item"><div class="stat-value" id="stat_l1">0</div><div class="stat-label">L1 信息</div></div>
+      <div class="stat-item"><div class="stat-value" id="stat_l2">0</div><div class="stat-label">L2 一般</div></div>
+      <div class="stat-item"><div class="stat-value" id="stat_l3">0</div><div class="stat-label">L3 高级</div></div>
+      <div class="stat-item"><div class="stat-value" id="stat_l4">0</div><div class="stat-label">L4 紧急</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <h3><span class="icon">&#128196;</span> 历史告警记录</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>时间</th><th>等级</th><th>类型</th><th>详情</th><th>状态</th></tr></thead>
+        <tbody id="alarmHistoryBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =====================================================================================
+   沿海海上风力发电设备内部腐蚀度检测系统 - 便携演示版
+   所有算法严格基于原项目 src/algorithms/ 和 src/core/ 中的实现
+   ===================================================================================== */
+
+/* ===== 工具函数 ===== */
+function generateUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+function clamp(val, lo, hi) { return Math.max(lo, Math.min(hi, val)); }
+function isFiniteNumber(v) { return typeof v === 'number' && isFinite(v); }
+
+/* ===== 配置常量 ===== */
+const SECONDS_PER_YEAR = 8760 * 3600;
+const HOURS_PER_YEAR = 8760;
+const DEFAULT_D0 = 100.0;
+const DEFAULT_T0 = 25.0;
+const DEFAULT_ALPHA_RES = 0.0;
+const DEFAULT_BETA_RES = 0.0;
+const DEFAULT_RH_CRIT = 76.0;
+const DEFAULT_EPSILON_MULTIPLIER = 3.0;
+const DEFAULT_K_S = 0.01;
+const DEFAULT_TOW_REF = 4000.0;
+const RS_RR_MIN = 0.5;
+const RS_RR_MAX = 2.0;
+const MAX_CONSECUTIVE_INVALID = 10;
+const DIFF_THRESHOLD = 0.15;
+const DT_DT_THRESHOLD = 2.0;
+const WEIGHT_ER_CONSISTENT = 0.6;
+const WEIGHT_INDUCTIVE_CONSISTENT = 0.4;
+const WEIGHT_ER_TEMP_SHOCK = 0.2;
+const WEIGHT_INDUCTIVE_TEMP_SHOCK = 0.8;
+const ETA_THRESHOLD_PITTING = 3.0;
+const ETA_THRESHOLD_SEVERE = 5.0;
+const EWMA_ALPHA = 0.3;
+const MIN_WARMUP_SAMPLES = 36;
+const DUPLICATE_SUPPRESS_SECONDS = 600;
+
+/* ===== 标定曲线默认数据点 (δ, η) ===== */
+const DEFAULT_CALIBRATION_POINTS = [
+  [0.00, 1.00], [0.05, 1.20], [0.10, 1.50], [0.15, 2.00],
+  [0.20, 2.80], [0.25, 3.50], [0.30, 4.50], [0.35, 6.00],
+  [0.40, 8.00], [0.45, 10.00]
+];
+
+/* ===== ISO 9223 分类定义 ===== */
+const TOW_GRADES = [
+  { label: 'τ1', desc: '非常短', lo: 0, hi: 10 },
+  { label: 'τ2', desc: '短', lo: 10, hi: 250 },
+  { label: 'τ3', desc: '中等', lo: 250, hi: 2500 },
+  { label: 'τ4', desc: '长', lo: 2500, hi: 5500 },
+  { label: 'τ5', desc: '非常长', lo: 5500, hi: Infinity }
+];
+
+const CORROSIVITY_CATEGORIES = [
+  { label: 'C1', desc: '极低', lo: 0, hi: 1.3 },
+  { label: 'C2', desc: '低', lo: 1.3, hi: 25 },
+  { label: 'C3', desc: '中等', lo: 25, hi: 50 },
+  { label: 'C4', desc: '高', lo: 50, hi: 80 },
+  { label: 'C5', desc: '极高', lo: 80, hi: 200 },
+  { label: 'CX', desc: '极端', lo: 200, hi: Infinity }
+];
+
+const SALINITY_GRADES = [
+  { label: 'S0', desc: '可忽略', lo: 0, hi: 3 },
+  { label: 'S1', desc: '中等', lo: 3, hi: 60 },
+  { label: 'S2', desc: '高', lo: 60, hi: 300 },
+  { label: 'S3', desc: '极高', lo: 300, hi: Infinity }
+];
+
+/* ISO 9223 TOW × Salinity → Estimated Corrosivity 查找表 */
+const TOW_CORROSIVITY_TABLE = {
+  'τ1': { 'S0': 'C1', 'S1': 'C1', 'S2': 'C1', 'S3': 'C2' },
+  'τ2': { 'S0': 'C1', 'S1': 'C2', 'S2': 'C2', 'S3': 'C3' },
+  'τ3': { 'S0': 'C2', 'S1': 'C3', 'S2': 'C4', 'S3': 'C4' },
+  'τ4': { 'S0': 'C3', 'S1': 'C4', 'S2': 'C5', 'S3': 'C5' },
+  'τ5': { 'S0': 'C4', 'S1': 'C5', 'S2': 'CX', 'S3': 'CX' }
+};
+
+/* ===== 告警类型定义（与原项目 alarm_definitions.py 一致） ===== */
+const ALARM_DEFINITIONS = {
+  'SENSOR_COMM_FAILURE':          { level: 2, severity: '一般', template: '传感器 {sensor_id} 通信故障: {error_detail}', autoResolve: 'sensor_reconnected' },
+  'CURRENT_SOURCE_UNSTABLE':      { level: 2, severity: '一般', template: '恒流源短期稳定性异常: 波动率 {fluctuation_rate}', autoResolve: 'stability_restored' },
+  'D_TEMP_SHOCK_DIFF_GT_15PCT':   { level: 2, severity: '一般', template: '温度冲击，双模式差异 > 15%: diff = {diff}', autoResolve: 'temperature_stabilized' },
+  'CORROSION_ABNORMAL_ACCELERATION': { level: 3, severity: '高级', template: '腐蚀异常加速: 实测/预测比值 = {ratio}', autoResolve: 'acceleration_normalized' },
+  'PITTING_RISK':                 { level: 3, severity: '高级', template: '非均匀腐蚀/点蚀风险: η = {eta}', autoResolve: 'eta_normalized' },
+  'SEVERE_PITTING_PERFORATION':   { level: 4, severity: '紧急', template: '严重点蚀，穿孔风险: η = {eta}', autoResolve: 'manual_only' },
+  'REFERENCE_RING_DRIFT':         { level: 3, severity: '高级', template: '参考环涂层可能失效: 漂移率 {drift_rate}', autoResolve: 'manual_only' },
+  'CONSECUTIVE_FALSE_SIGNALS':    { level: 3, severity: '高级', template: '连续虚假信号超过阈值: {count}次', autoResolve: 'signal_normalized' },
+  'DUAL_SENSOR_FAILURE':          { level: 4, severity: '紧急', template: '双传感器同时故障', autoResolve: 'manual_only' },
+  'CORROSION_THRESHOLD_80PCT':    { level: 4, severity: '紧急', template: '累计腐蚀超过安全阈值的80%: {current_depth}μm', autoResolve: 'manual_only' },
+  'ENVIRONMENT_RAPID_CHANGE':     { level: 1, severity: '信息', template: '环境剧烈变化: dT/dt = {dt_dt}°C/10min', autoResolve: 'environment_stabilized' },
+  'TEMPERATURE_SHOCK':            { level: 2, severity: '一般', template: '温度冲击，ER可能含伪信号: diff = {diff}', autoResolve: 'temperature_stabilized' },
+  'EMERGENCY_MODE':               { level: 1, severity: '信息', template: '进入应急采样模式, 原因: {reason}', autoResolve: 'emergency_mode_exited' },
+  'PROBE_CIRCUIT_ANOMALY':        { level: 3, severity: '高级', template: '探头/电路异常: {detail}', autoResolve: 'manual_only' },
+  'MEASURED_ESTIMATED_DISCREPANCY': { level: 3, severity: '高级', template: '实测腐蚀等级比估计高{delta}级以上', autoResolve: 'discrepancy_resolved' },
+  'ISO_ASSESSMENT_ALARM':         { level: 3, severity: '高级', template: 'ISO 9223评估告警: {message}', autoResolve: 'manual_only' }
+};
+
+/* ===== 全局状态 ===== */
+const appState = {
+  prevTimestamp: null,
+  prevDeltaD: null,
+  prevT: null,
+  prevRH: null,
+  prevDeltaD_ER: null,
+  prevDeltaD_Inductive: null,
+  prevCR_ER_EWMA: null,
+  prevCR_Inductive_EWMA: null,
+  vRefBuffer: [],
+  maxVRefBuffer: 20,
+  consecutiveInvalid: 0,
+  runningTSum: 0, runningRHSum: 0, runningClSum: 0, runningCount: 0,
+  towHours: 0, totalTowHours: 0, lastHourBucket: null,
+  kalman: null,
+  alarms: [],
+  alarmHistory: [],
+  processingLog: []
+};
+
+/* ===== 卡尔曼滤波器（与原项目 kalman_filter.py 一致） ===== */
+class KalmanFilter {
+  constructor(measurementNoiseVar = 1.0, baseProcessNoise = 0.01) {
+    this.R = measurementNoiseVar;           /* 标量测量噪声 */
+    this.Q_base_rate = baseProcessNoise;    /* 基础过程噪声 */
+    this.x = [0, 0];                        /* 状态向量 [Δd, CR] */
+    this.P = [[1e6, 0], [0, 1e4]];         /* 协方差矩阵 */
+    this.dtYears = 0;
+    this.sampleCount = 0;
+    this.warmedUp = false;
+  }
+
+  predict(dtSeconds, dT_dt = 0, dRH_dt = 0) {
+    dtSeconds = Math.max(dtSeconds, 0);
+    this.dtYears = dtSeconds / (HOURS_PER_YEAR * 3600);
+    this.dtYears = Math.max(this.dtYears, 1e-9);
+    var dt = this.dtYears;
+
+    /* 环境自适应过程噪声缩放 */
+    var envScale = 1.0 + Math.abs(dT_dt) / 10.0 + Math.abs(dRH_dt) / 50.0;
+    envScale = clamp(envScale, 1.0, 100.0);
+
+    /* 状态转移矩阵 F = [[1, dt], [0, 1]] */
+    var F00 = 1, F01 = dt, F10 = 0, F11 = 1;
+
+    /* 预测状态 */
+    var x0 = F00 * this.x[0] + F01 * this.x[1];
+    var x1 = F10 * this.x[0] + F11 * this.x[1];
+    this.x = [x0, x1];
+
+    /* 计算过程噪声 Q = G * q_rate, G = [[dt^3/3, dt^2/2], [dt^2/2, dt]] */
+    var dt2 = dt * dt, dt3 = dt2 * dt;
+    var qRate = this.Q_base_rate * envScale;
+    var G00 = dt3 / 3, G01 = dt2 / 2;
+    var G10 = dt2 / 2, G11 = dt;
+    var Q00 = G00 * qRate, Q01 = G01 * qRate;
+    var Q10 = G10 * qRate, Q11 = G11 * qRate;
+
+    /* 协方差预测 P = F·P·F^T + Q */
+    var P00 = this.P[0][0], P01 = this.P[0][1], P10 = this.P[1][0], P11 = this.P[1][1];
+    var FP00 = F00 * P00 + F01 * P10;
+    var FP01 = F00 * P01 + F01 * P11;
+    var FP10 = F10 * P00 + F11 * P10;
+    var FP11 = F10 * P01 + F11 * P11;
+    var newP00 = FP00 * F00 + FP01 * F01 + Q00;
+    var newP01 = FP00 * F10 + FP01 * F11 + Q01;
+    var newP10 = FP10 * F00 + FP11 * F01 + Q10;
+    var newP11 = FP10 * F10 + FP11 * F11 + Q11;
+
+    /* 强制对称 */
+    this.P = [[newP00, (newP01 + newP10) / 2], [(newP01 + newP10) / 2, newP11]];
+    return [this.x[0], this.x[1]];
+  }
+
+  update(measurement) {
+    this.sampleCount++;
+    var z = measurement;
+    /* 测量残差 y = z - H·x, H = [1, 0] */
+    var y = z - this.x[0];
+
+    /* 创新协方差 S = H·P·H^T + R */
+    var S = this.P[0][0] + this.R;
+    if (S <= 0) { return [this.x[0], this.x[1]]; }
+
+    /* 卡尔曼增益 K = P·H^T / S */
+    var K0 = this.P[0][0] / S;
+    var K1 = this.P[1][0] / S;
+
+    /* 状态更新 */
+    this.x[0] = this.x[0] + K0 * y;
+    this.x[1] = this.x[1] + K1 * y;
+
+    /* Joseph形式协方差更新 P = (I-KH)·P·(I-KH)^T + K·R·K^T */
+    var IKH00 = 1 - K0, IKH01 = 0;
+    var IKH10 = -K1,     IKH11 = 1;
+    var P00 = this.P[0][0], P01 = this.P[0][1], P10 = this.P[1][0], P11 = this.P[1][1];
+    var t00 = IKH00 * P00 + IKH01 * P10;
+    var t01 = IKH00 * P01 + IKH01 * P11;
+    var t10 = IKH10 * P00 + IKH11 * P10;
+    var t11 = IKH10 * P01 + IKH11 * P11;
+    var newP00 = t00 * IKH00 + t01 * IKH10 + K0 * this.R * K0;
+    var newP01 = t00 * IKH01 + t01 * IKH11 + K0 * this.R * K1;
+    var newP10 = t10 * IKH00 + t11 * IKH10 + K1 * this.R * K0;
+    var newP11 = t10 * IKH01 + t11 * IKH11 + K1 * this.R * K1;
+
+    this.P = [[newP00, (newP01 + newP10) / 2], [(newP01 + newP10) / 2, newP11]];
+
+    if (this.sampleCount >= MIN_WARMUP_SAMPLES && !this.warmedUp) {
+      this.warmedUp = true;
+      addLog('卡尔曼滤波器预热完成 (' + this.sampleCount + ' 个样本)', 'info');
+    }
+
+    return [this.x[0], this.x[1]];
+  }
+
+  getState() {
+    var dd = Math.max(0, this.x[0]);
+    var cr = this.x[1];
+    if (this.dtYears > 1e-9 && this.warmedUp && cr < 0 && dd > 1e-6) {
+      cr = Math.max(cr, 0);
+    }
+    return [dd, cr];
+  }
+
+  setMeasurementNoise(variance) {
+    if (variance > 0) this.R = variance;
+  }
+
+  reset() {
+    this.x = [0, 0];
+    this.P = [[1e6, 0], [0, 1e4]];
+    this.sampleCount = 0;
+    this.warmedUp = false;
+  }
+}
+
+/* ===== 四级误差补偿引擎（与原项目 algorithm_engine.py 一致） ===== */
+const AlgorithmEngine = {
+  /* Level 1: 硬件差分补偿
+     Rs/Rr = 1 + V_diff / V_mid
+     Δd_raw = d0 × (1 - Rr/Rs) */
+  compensateL1(V_mid, V_diff, d0) {
+    V_mid = parseFloat(V_mid); V_diff = parseFloat(V_diff); d0 = parseFloat(d0);
+    if (d0 <= 0) d0 = DEFAULT_D0;
+    if (Math.abs(V_mid) < 1e-9) return { dd: 0, status: 'V_mid_zero' };
+
+    var rsRr = 1.0 + V_diff / V_mid;
+    var status = 'OK';
+    if (rsRr < RS_RR_MIN || rsRr > RS_RR_MAX) {
+      rsRr = clamp(rsRr, RS_RR_MIN, RS_RR_MAX);
+      status = 'RsRr_clamped';
+    }
+    if (Math.abs(rsRr) < 1e-9) return { dd: d0, status: 'division_by_zero' };
+
+    var rrRs = 1.0 / rsRr;
+    var dd = d0 * (1.0 - rrRs);
+    dd = clamp(dd, 0, d0);
+    return { dd: dd, status: status, rsRr: rsRr };
+  },
+
+  /* Level 2: 比值法自校准 - 监测V_ref短期波动 */
+  verifyL2() {
+    var buf = appState.vRefBuffer;
+    if (buf.length < 2) return { status: 'OK', fluctuation: 0 };
+    var mean = buf.reduce(function(a, b) { return a + b; }, 0) / buf.length;
+    if (mean <= 1e-9) return { status: 'OK', fluctuation: 0 };
+    var maxDev = Math.max.apply(null, buf.map(function(v) { return Math.abs(v - mean); }));
+    var fluctuation = maxDev / mean;
+    if (fluctuation > 0.001) {
+      return { status: '恒流源短期稳定性异常', fluctuation: fluctuation };
+    }
+    return { status: 'OK', fluctuation: fluctuation };
+  },
+
+  /* Level 3A: 残余温度多项式修正
+     Δd_corrected = Δd_raw / [1 + α_res×(T-T₀) + β_res×(T-T₀)²] */
+  compensateL3A(ddRaw, T, alphaRes, betaRes, T0) {
+    ddRaw = parseFloat(ddRaw); T = parseFloat(T);
+    alphaRes = parseFloat(alphaRes); betaRes = parseFloat(betaRes); T0 = parseFloat(T0);
+    if (ddRaw <= 0) return 0;
+    if (alphaRes === 0 && betaRes === 0) return ddRaw;
+
+    var dT = T - T0;
+    var denom = 1.0 + alphaRes * dT + betaRes * dT * dT;
+    if (Math.abs(denom) < 1e-9) return ddRaw;
+    return Math.max(0, ddRaw / denom);
+  },
+
+  /* Level 3B: 湿度门控过滤器
+     NaCl潮解阈值76%RH: RH < 76% AND Δd_raw ≥ ε_noise → invalid */
+  filterL3B(ddRaw, RH, epsilonNoise) {
+    ddRaw = parseFloat(ddRaw); RH = parseFloat(RH);
+    if (epsilonNoise <= 0) return { valid: true, status: 'OK' };
+    if (RH >= DEFAULT_RH_CRIT || Math.abs(ddRaw) < epsilonNoise) {
+      return { valid: true, status: 'OK' };
+    }
+    if (appState.consecutiveInvalid + 1 >= MAX_CONSECUTIVE_INVALID) {
+      return { valid: false, status: '探头/电路异常' };
+    }
+    return { valid: false, status: '低于RH阈值且信号高于噪声' };
+  },
+
+  /* Level 3C: 环境因子修正
+     CR_normalized = CR_raw × (TOW_ref / TOW_actual) × 1/(1 + k_S × S_Cl) */
+  correctL3C(CR_raw, TOW_actual) {
+    CR_raw = parseFloat(CR_raw); TOW_actual = parseFloat(TOW_actual);
+    if (CR_raw <= 0) return 0;
+    if (TOW_actual <= 0 || DEFAULT_TOW_REF <= 0) return CR_raw;
+    var towFactor = clamp(DEFAULT_TOW_REF / TOW_actual, 0.1, 10.0);
+    var chlorideFactor = 1.0 / (1.0 + DEFAULT_K_S * Math.max(0, appState.runningClSum / Math.max(1, appState.runningCount)));
+    return Math.max(0, CR_raw * towFactor * chlorideFactor);
+  },
+
+  /* Level 3D: 剂量-响应函数预测
+     r_pred = 0.102 × [Cl]^0.62 × e^(0.033×RH + 0.040×T) */
+  predictDoseResponse(T_avg, RH_avg, Cl_avg) {
+    T_avg = parseFloat(T_avg); RH_avg = parseFloat(RH_avg); Cl_avg = parseFloat(Cl_avg);
+    if (Cl_avg < 0 || RH_avg < 0 || RH_avg > 100) return { r_pred: 0, confidence: 0 };
+    var confidence = 1.0;
+    var ClSafe = Cl_avg <= 0 ? 1e-6 : Cl_avg;
+    if (Cl_avg <= 0) confidence = 0;
+    var RHSafe = RH_avg <= 0 ? 0.1 : RH_avg;
+    if (RH_avg <= 0) confidence = Math.max(0, confidence - 0.3);
+    if (T_avg < -50 || T_avg > 80) confidence = Math.max(0, confidence - 0.3);
+
+    var exponent = 0.033 * RHSafe + 0.040 * T_avg;
+    exponent = clamp(exponent, -50, 50);
+    var rPred = 0.102 * Math.pow(ClSafe, 0.62) * Math.exp(exponent);
+    if (!isFiniteNumber(rPred)) return { r_pred: 0, confidence: 0 };
+    return { r_pred: Math.max(0, rPred), confidence: confidence };
+  },
+
+  /* 交叉验证: 实测速率 vs 预测速率 */
+  crossValidate(rMeas, rPred) {
+    rMeas = parseFloat(rMeas); rPred = parseFloat(rPred);
+    if (rMeas < 0) rMeas = 0;
+    if (rPred <= 1e-9) {
+      if (rMeas > 1e-9) return { ratio: Infinity, verdict: 'ABNORMAL_ACCELERATION', alarmLevel: 1 };
+      return { ratio: 1.0, verdict: 'NORMAL', alarmLevel: 0 };
+    }
+    var ratio = rMeas / rPred;
+    if (!isFiniteNumber(ratio)) return { ratio: Infinity, verdict: 'ABNORMAL_ACCELERATION', alarmLevel: 1 };
+    if (ratio >= 0.5 && ratio <= 2.0) return { ratio: ratio, verdict: 'NORMAL', alarmLevel: 0 };
+    if (ratio > 2.0) return { ratio: ratio, verdict: 'ABNORMAL_ACCELERATION', alarmLevel: (ratio > 4.0 ? 2 : 1) };
+    return { ratio: ratio, verdict: 'COATING_EFFECTIVE', alarmLevel: 0 };
+  },
+
+  /* 计算瞬时腐蚀速率 */
+  computeCR(deltaD, timestamp) {
+    if (appState.prevDeltaD === null || appState.prevTimestamp === null) return 0;
+    var dtSec = (timestamp - appState.prevTimestamp) / 1000;
+    if (dtSec <= 0) return 0;
+    var dd = deltaD - appState.prevDeltaD;
+    if (dd < 0) dd = 0;
+    return (dd / dtSec) * SECONDS_PER_YEAR;
+  },
+
+  /* 更新TOW统计 */
+  updateTOW(T, RH) {
+    var now = new Date();
+    var currentHour = now.getHours();
+    if (appState.lastHourBucket === null || currentHour !== appState.lastHourBucket) {
+      appState.lastHourBucket = currentHour;
+      appState.totalTowHours += 1;
+      if (T > 0 && RH > 80) {
+        appState.towHours += 1;
+      }
+    }
+  },
+
+  getAnnualTOW() {
+    if (appState.totalTowHours < 24) return 0;
+    return appState.towHours * (HOURS_PER_YEAR / appState.totalTowHours);
+  },
+
+  getTOWGrade(annualTOW) {
+    if (annualTOW <= 0) return TOW_GRADES[0];
+    for (var i = 0; i < TOW_GRADES.length; i++) {
+      if (annualTOW <= TOW_GRADES[i].hi) return TOW_GRADES[i];
+    }
+    return TOW_GRADES[TOW_GRADES.length - 1];
+  }
+};
+
+/* ===== 双模验证器（与原项目 dual_mode_validator.py 一致） ===== */
+const DualModeValidator = {
+  computeCR(deltaD, timestamp, prevDeltaD, prevCR_EWMA, prevTimestamp) {
+    if (prevDeltaD === null || prevTimestamp === null) return { cr: 0, ewma: 0 };
+    var dtSec = (timestamp - prevTimestamp) / 1000;
+    if (dtSec <= 0) return { cr: 0, ewma: prevCR_EWMA || 0 };
+    var dd = deltaD - prevDeltaD;
+    if (dd < 0) dd = 0;
+    var crInstant = (dd / dtSec) * SECONDS_PER_YEAR;
+    var crSmooth;
+    if (prevCR_EWMA !== null && prevCR_EWMA > 0) {
+      crSmooth = EWMA_ALPHA * crInstant + (1 - EWMA_ALPHA) * prevCR_EWMA;
+    } else {
+      crSmooth = crInstant;
+    }
+    return { cr: crSmooth, ewma: crSmooth };
+  },
+
+  computeDiff(crER, crInd) {
+    var num = Math.abs(crER - crInd);
+    var denom = (crER + crInd) / 2;
+    if (denom < 1e-9) return 0;
+    return num / denom;
+  },
+
+  computeDelta(ddER, ddInd) {
+    if (ddER <= 1e-9) return null;
+    return Math.abs(ddER - ddInd) / ddER;
+  },
+
+  /* 从标定曲线获取 η */
+  getEta(delta) {
+    if (delta === null || delta === undefined) return 1.0;
+    delta = Math.max(0, delta);
+    var points = DEFAULT_CALIBRATION_POINTS;
+    if (delta <= points[0][0]) return points[0][1];
+    if (delta >= points[points.length - 1][0]) return points[points.length - 1][1];
+    /* 线性插值 */
+    for (var i = 0; i < points.length - 1; i++) {
+      if (delta >= points[i][0] && delta <= points[i + 1][0]) {
+        var t = (delta - points[i][0]) / (points[i + 1][0] - points[i][0]);
+        return Math.max(1.0, points[i][1] + t * (points[i + 1][1] - points[i][1]));
+      }
+    }
+    return 1.0;
+  },
+
+  validate(ddER, ddInd, timestamp, dT_dt, T_history) {
+    ddER = Math.max(0, parseFloat(ddER));
+    ddInd = Math.max(0, parseFloat(ddInd));
+
+    var crER_result = this.computeCR(ddER, timestamp, appState.prevDeltaD_ER, appState.prevCR_ER_EWMA, appState.prevTimestamp);
+    var crInd_result = this.computeCR(ddInd, timestamp, appState.prevDeltaD_Inductive, appState.prevCR_Inductive_EWMA, appState.prevTimestamp);
+
+    if (dT_dt === undefined || dT_dt === null) {
+      dT_dt = this.calculateDT_dt(T_history);
+    }
+
+    var diff = this.computeDiff(crER_result.cr, crInd_result.cr);
+    var absDT_dt = Math.abs(dT_dt);
+
+    var result;
+    if (diff < DIFF_THRESHOLD) {
+      /* 场景1: 双模一致 */
+      var crOut = WEIGHT_ER_CONSISTENT * crER_result.cr + WEIGHT_INDUCTIVE_CONSISTENT * crInd_result.cr;
+      result = {
+        cr_out: crOut, cr_er: crER_result.cr, cr_inductive: crInd_result.cr,
+        eta: 1.0, delta_d_actual: 0,
+        status: 'DUAL_CONSISTENT', alarm_level: 0,
+        verdict: '双模一致: 均匀腐蚀，速度在阈值内一致',
+        diff: diff
+      };
+    } else if (absDT_dt > DT_DT_THRESHOLD) {
+      /* 场景2: 温度冲击 */
+      var crOut2 = WEIGHT_ER_TEMP_SHOCK * crER_result.cr + WEIGHT_INDUCTIVE_TEMP_SHOCK * crInd_result.cr;
+      result = {
+        cr_out: crOut2, cr_er: crER_result.cr, cr_inductive: crInd_result.cr,
+        eta: 1.0, delta_d_actual: 0,
+        status: 'TEMPERATURE_SHOCK', alarm_level: 1,
+        verdict: '温度冲击检测 (dT/dt=' + dT_dt.toFixed(2) + '°C/10min): ER探针可能含伪信号，电感探针权重更高',
+        diff: diff
+      };
+    } else {
+      /* 场景3: 点蚀风险评估 */
+      var delta = this.computeDelta(ddER, ddInd);
+      if (delta === null) {
+        result = {
+          cr_out: crER_result.cr, cr_er: crER_result.cr, cr_inductive: crInd_result.cr,
+          eta: 1.0, delta_d_actual: ddER,
+          status: 'PITTING_SUSPECTED', alarm_level: 1,
+          verdict: '点蚀诊断跳过: Δd_ER 过小无法计算差异比δ，回退至ER速率',
+          diff: diff
+        };
+      } else {
+        var eta = this.getEta(delta);
+        var ddActual = eta * ddER;
+        var alarmLevel = 0;
+        var verdict;
+        if (eta > ETA_THRESHOLD_SEVERE) {
+          alarmLevel = 4;
+          verdict = '严重点蚀 - 穿孔风险! η=' + eta.toFixed(2) + ' > ' + ETA_THRESHOLD_SEVERE + ', Δd_actual=' + ddActual.toFixed(2) + 'μm. 需立即检查。';
+        } else if (eta > ETA_THRESHOLD_PITTING) {
+          alarmLevel = 3;
+          verdict = '非均匀腐蚀/点蚀风险: η=' + eta.toFixed(2) + ' > ' + ETA_THRESHOLD_PITTING + ', Δd_actual=' + ddActual.toFixed(2) + 'μm. 安排检查。';
+        } else {
+          alarmLevel = 0;
+          verdict = '双模差异 (diff=' + diff.toFixed(4) + '): 疑似非均匀腐蚀。η=' + eta.toFixed(2) + ', Δd_actual=' + ddActual.toFixed(2) + 'μm';
+        }
+        result = {
+          cr_out: crER_result.cr, cr_er: crER_result.cr, cr_inductive: crInd_result.cr,
+          eta: eta, delta_d_actual: ddActual,
+          status: 'PITTING_SUSPECTED', alarm_level: alarmLevel,
+          verdict: verdict, diff: diff
+        };
+      }
+    }
+
+    return result;
+  },
+
+  calculateDT_dt(T_history) {
+    if (!T_history || T_history.length < 2) return 0;
+    T_history.sort(function(a, b) { return a[0] - b[0]; });
+    var first = T_history[0], last = T_history[T_history.length - 1];
+    var dtMin = (last[0] - first[0]) / 60000;
+    if (dtMin <= 0) return 0;
+    return (last[1] - first[1]) / dtMin * 10;
+  }
+};
+
+/* ===== ISO 9223/9224 评估引擎（与原项目 iso_9223.py 一致） ===== */
+const ISOAssessor = {
+  classifyTOW(towHours) {
+    towHours = parseFloat(towHours);
+    if (towHours < 0) towHours = 0;
+    for (var i = 0; i < TOW_GRADES.length; i++) {
+      if (towHours > TOW_GRADES[i].lo && towHours <= TOW_GRADES[i].hi) return TOW_GRADES[i];
+    }
+    return TOW_GRADES[TOW_GRADES.length - 1];
+  },
+
+  classifyCorrosivity(rate) {
+    rate = parseFloat(rate);
+    if (rate < 0) rate = 0;
+    for (var i = 0; i < CORROSIVITY_CATEGORIES.length; i++) {
+      if (rate > CORROSIVITY_CATEGORIES[i].lo && rate <= CORROSIVITY_CATEGORIES[i].hi) return CORROSIVITY_CATEGORIES[i];
+    }
+    return CORROSIVITY_CATEGORIES[CORROSIVITY_CATEGORIES.length - 1];
+  },
+
+  classifySalinity(clDep) {
+    clDep = parseFloat(clDep);
+    if (clDep < 0) clDep = 0;
+    for (var i = 0; i < SALINITY_GRADES.length; i++) {
+      if (clDep > SALINITY_GRADES[i].lo && clDep <= SALINITY_GRADES[i].hi) return SALINITY_GRADES[i];
+    }
+    return SALINITY_GRADES[SALINITY_GRADES.length - 1];
+  },
+
+  estimateCategory(towGrade, salinityGrade) {
+    var row = TOW_CORROSIVITY_TABLE[towGrade.label];
+    if (!row) return CORROSIVITY_CATEGORIES[5];
+    var label = row[salinityGrade.label];
+    if (!label) return CORROSIVITY_CATEGORIES[5];
+    for (var i = 0; i < CORROSIVITY_CATEGORIES.length; i++) {
+      if (CORROSIVITY_CATEGORIES[i].label === label) return CORROSIVITY_CATEGORIES[i];
+    }
+    return CORROSIVITY_CATEGORIES[5];
+  },
+
+  compareMeasuredVsEstimated(measured, estimated) {
+    var diff = Math.abs(measured.label.charCodeAt(1) - estimated.label.charCodeAt(1));
+    /* 处理 CX (label编码为'X') */
+    var mNum = measured.label === 'CX' ? 6 : parseInt(measured.label.substring(1));
+    var eNum = estimated.label === 'CX' ? 6 : parseInt(estimated.label.substring(1));
+    diff = Math.abs(mNum - eNum);
+    var alarm = diff >= 2;
+    var message;
+    if (diff === 0) {
+      message = '实测(' + measured.label + ')与估计(' + estimated.label + ')一致';
+    } else if (!alarm) {
+      message = '轻微偏差: 实测 ' + measured.label + ' vs 估计 ' + estimated.label + ' (1级)';
+    } else {
+      message = '显著偏差: 实测 ' + measured.label + ' vs 估计 ' + estimated.label + ' (' + diff + '级)。建议调查。';
+    }
+    return { measured: measured.label, estimated: estimated.label, difference: diff, alarm: alarm, message: message };
+  },
+
+  predictLongTerm(firstYearRate, years, bExponent) {
+    if (!years) years = [1, 5, 10, 25];
+    if (!bExponent) bExponent = 0.523;
+    firstYearRate = Math.max(0, parseFloat(firstYearRate));
+    var predictions = {};
+    for (var i = 0; i < years.length; i++) {
+      predictions[years[i]] = Math.round(firstYearRate * Math.pow(years[i], bExponent) * 1000) / 1000;
+    }
+    return predictions;
+  }
+};
+
+/* ===== 告警管理器（与原项目 alarm_manager.py 一致） ===== */
+const AlarmManager = {
+  raiseAlarm(level, alarmType, details, sensorId) {
+    if (!sensorId) sensorId = '';
+    /* 重复抑制：同一类型+传感器 在10分钟内不重复触发 */
+    var cutoff = Date.now() - DUPLICATE_SUPPRESS_SECONDS * 1000;
+    for (var i = 0; i < appState.alarms.length; i++) {
+      var a = appState.alarms[i];
+      if (a.status === 'ACTIVE' || a.status === 'ACKNOWLEDGED') {
+        if (a.timestamp < cutoff) continue;
+        if (a.alarmType === alarmType && a.sensorId === sensorId) return null;
+      }
+    }
+    for (var j = 0; j < appState.alarmHistory.length; j++) {
+      var ah = appState.alarmHistory[j];
+      if (ah.status === 'ACTIVE' || ah.status === 'ACKNOWLEDGED') {
+        if (ah.timestamp < cutoff) continue;
+        if (ah.alarmType === alarmType && ah.sensorId === sensorId) return null;
+      }
+    }
+
+    var def = ALARM_DEFINITIONS[alarmType] || { level: 1, severity: '未知', template: '未知告警: ' + alarmType };
+    var message = formatAlarmMessage(def.template, details);
+
+    var alarm = {
+      id: generateUUID(),
+      timestamp: Date.now(),
+      level: level,
+      alarmType: alarmType,
+      sensorId: sensorId,
+      message: message,
+      details: details,
+      status: 'ACTIVE',
+      severity: def.severity
+    };
+
+    appState.alarms.push(alarm);
+    appState.alarmHistory.push(alarm);
+
+    addLog('[LEVEL ' + level + '] ' + alarmType + ' | ' + message, level >= 3 ? 'error' : 'warn');
+
+    if (level >= 2) {
+      showToast(alarmType, message, level >= 3 ? 'error' : 'warning');
+    }
+
+    refreshAlarmUI();
+    return alarm;
+  },
+
+  acknowledgeAlarm(alarmId) {
+    for (var i = 0; i < appState.alarms.length; i++) {
+      if (appState.alarms[i].id === alarmId && appState.alarms[i].status === 'ACTIVE') {
+        appState.alarms[i].status = 'ACKNOWLEDGED';
+        addLog('告警 ' + alarmId.substring(0, 8) + ' 已确认', 'info');
+        refreshAlarmUI();
+        return true;
+      }
+    }
+    return false;
+  },
+
+  resolveAlarm(alarmId) {
+    for (var i = 0; i < appState.alarms.length; i++) {
+      if (appState.alarms[i].id === alarmId) {
+        appState.alarms[i].status = 'RESOLVED';
+        addLog('告警 ' + alarmId.substring(0, 8) + ' 已解决', 'info');
+        refreshAlarmUI();
+        return true;
+      }
+    }
+    return false;
+  },
+
+  getActiveCount() {
+    var count = 0;
+    for (var i = 0; i < appState.alarms.length; i++) {
+      if (appState.alarms[i].status === 'ACTIVE' || appState.alarms[i].status === 'ACKNOWLEDGED') count++;
+    }
+    return count;
+  },
+
+  getStats() {
+    var stats = { total: appState.alarmHistory.length, active: 0, l1: 0, l2: 0, l3: 0, l4: 0 };
+    for (var i = 0; i < appState.alarms.length; i++) {
+      var a = appState.alarms[i];
+      if (a.status === 'ACTIVE' || a.status === 'ACKNOWLEDGED') stats.active++;
+      if (a.level === 1) stats.l1++;
+      else if (a.level === 2) stats.l2++;
+      else if (a.level === 3) stats.l3++;
+      else if (a.level === 4) stats.l4++;
+    }
+    stats.total = appState.alarmHistory.length;
+    return stats;
+  }
+};
+
+function formatAlarmMessage(template, details) {
+  if (!details) return template;
+  var msg = template;
+  for (var key in details) {
+    if (details.hasOwnProperty(key)) {
+      var val = details[key];
+      if (typeof val === 'number') val = parseFloat(val.toFixed(4));
+      msg = msg.replace('{' + key + '}', val);
+    }
+  }
+  return msg;
+}
+
+/* ===== 主处理函数 ===== */
+function processSingleSample() {
+  var now = Date.now();
+
+  var T = parseFloat(document.getElementById('input_T').value) || 0;
+  var RH = parseFloat(document.getElementById('input_RH').value) || 0;
+  var Cl = parseFloat(document.getElementById('input_Cl').value) || 0;
+  var ddER = parseFloat(document.getElementById('input_dER').value) || 0;
+  var ddInd = parseFloat(document.getElementById('input_dInd').value) || 0;
+  var Vmid = parseFloat(document.getElementById('input_Vmid').value) || 0;
+  var Vdiff = parseFloat(document.getElementById('input_Vdiff').value) || 0;
+
+  if (appState.kalman === null) appState.kalman = new KalmanFilter();
+
+  /* 更新 V_ref 缓冲区 */
+  appState.vRefBuffer.push(Vmid);
+  if (appState.vRefBuffer.length > appState.maxVRefBuffer) appState.vRefBuffer.shift();
+
+  /* 更新环境统计 */
+  appState.runningTSum += T;
+  appState.runningRHSum += RH;
+  appState.runningClSum += Cl;
+  appState.runningCount++;
+
+  /* 更新 TOW 统计 */
+  AlgorithmEngine.updateTOW(T, RH);
+
+  /* ========== 四级误差补偿管道 ========== */
+  var l1 = AlgorithmEngine.compensateL1(Vmid, Vdiff, DEFAULT_D0);
+  var l2 = AlgorithmEngine.verifyL2();
+  var epsilonNoise = 0.0; /* 噪声阈值未标定，暂设为0 */
+  var ddCorrected = AlgorithmEngine.compensateL3A(l1.dd, T, DEFAULT_ALPHA_RES, DEFAULT_BETA_RES, DEFAULT_T0);
+  var l3b = AlgorithmEngine.filterL3B(l1.dd, RH, epsilonNoise);
+  if (!l3b.valid) { appState.consecutiveInvalid++; } else { appState.consecutiveInvalid = 0; }
+
+  var crRaw = AlgorithmEngine.computeCR(l1.dd, now);
+  var towActual = AlgorithmEngine.getAnnualTOW();
+  var crNormalized = AlgorithmEngine.correctL3C(crRaw, towActual);
+
+  var T_avg = appState.runningCount > 0 ? appState.runningTSum / appState.runningCount : 0;
+  var RH_avg = appState.runningCount > 0 ? appState.runningRHSum / appState.runningCount : 0;
+  var Cl_avg = appState.runningCount > 0 ? appState.runningClSum / appState.runningCount : 0;
+  var l3d = AlgorithmEngine.predictDoseResponse(T_avg, RH_avg, Cl_avg);
+  var cv = AlgorithmEngine.crossValidate(crNormalized, l3d.r_pred);
+
+  /* 卡尔曼滤波 */
+  var dtSec = appState.prevTimestamp ? (now - appState.prevTimestamp) / 1000 : 600;
+  if (appState.prevT !== null && appState.prevRH !== null && dtSec > 1e-6) {
+    var dT_dt_kal = (T - appState.prevT) / dtSec;
+    var dRH_dt_kal = (RH - appState.prevRH) / dtSec;
+    appState.kalman.predict(dtSec, dT_dt_kal, dRH_dt_kal);
+  } else {
+    appState.kalman.predict(dtSec, 0, 0);
+  }
+  var crInput = l3b.valid ? ddCorrected : l1.dd;
+  appState.kalman.update(crInput);
+  var kalState = appState.kalman.getState();
+  var ddFiltered = kalState[0];
+  var crFiltered = l3b.valid ? kalState[1] : 0;
+
+  /* ========== 双模交叉验证 ========== */
+  var T_history = [];
+  if (appState.prevT !== null) {
+    T_history.push([appState.prevTimestamp, appState.prevT]);
+  }
+  T_history.push([now, T]);
+  var dT_dt_10min = DualModeValidator.calculateDT_dt(T_history);
+  var dvResult = DualModeValidator.validate(ddER, ddInd, now, dT_dt_10min, T_history);
+
+  /* ========== ISO 9223/9224 评估 ========== */
+  var effectiveRate = crFiltered > 0 ? crFiltered : (l3d.r_pred > 0 ? l3d.r_pred : 0.1);
+  var towGrade = ISOAssessor.classifyTOW(towActual);
+  var corrCategory = ISOAssessor.classifyCorrosivity(effectiveRate);
+  var salGrade = ISOAssessor.classifySalinity(Cl_avg);
+  var estimatedCategory = ISOAssessor.estimateCategory(towGrade, salGrade);
+  var comparison = ISOAssessor.compareMeasuredVsEstimated(corrCategory, estimatedCategory);
+  var predictions = ISOAssessor.predictLongTerm(effectiveRate);
+
+  /* ========== 更新状态 ========== */
+  appState.prevTimestamp = now;
+  appState.prevDeltaD = crInput;
+  appState.prevT = T;
+  appState.prevRH = RH;
+  appState.prevDeltaD_ER = ddER;
+  appState.prevDeltaD_Inductive = ddInd;
+  appState.prevCR_ER_EWMA = dvResult.cr_er;
+  appState.prevCR_Inductive_EWMA = dvResult.cr_inductive;
+
+  /* ========== 告警触发 ========== */
+  if (l2.status !== 'OK') {
+    AlarmManager.raiseAlarm(2, 'CURRENT_SOURCE_UNSTABLE', { fluctuation_rate: l2.fluctuation }, 'V_ref');
+  }
+  if (appState.consecutiveInvalid >= MAX_CONSECUTIVE_INVALID) {
+    AlarmManager.raiseAlarm(3, 'CONSECUTIVE_FALSE_SIGNALS', { count: appState.consecutiveInvalid }, '');
+  }
+  if (!l3b.valid && appState.consecutiveInvalid >= MAX_CONSECUTIVE_INVALID) {
+    AlarmManager.raiseAlarm(3, 'PROBE_CIRCUIT_ANOMALY', { detail: l3b.status }, '');
+  }
+  if (cv.verdict === 'ABNORMAL_ACCELERATION' && cv.ratio > 2.0) {
+    AlarmManager.raiseAlarm(cv.alarmLevel, 'CORROSION_ABNORMAL_ACCELERATION', { ratio: cv.ratio }, '');
+  }
+  if (dvResult.status === 'TEMPERATURE_SHOCK') {
+    AlarmManager.raiseAlarm(2, 'TEMPERATURE_SHOCK', { diff: dvResult.diff }, '');
+  }
+  if (dvResult.alarm_level === 4) {
+    AlarmManager.raiseAlarm(4, 'SEVERE_PITTING_PERFORATION', { eta: dvResult.eta }, 'ER+Inductive');
+  } else if (dvResult.alarm_level === 3) {
+    AlarmManager.raiseAlarm(3, 'PITTING_RISK', { eta: dvResult.eta }, 'ER+Inductive');
+  }
+  if (comparison.alarm) {
+    AlarmManager.raiseAlarm(3, 'MEASURED_ESTIMATED_DISCREPANCY', { delta: comparison.difference }, 'ISO');
+    AlarmManager.raiseAlarm(3, 'ISO_ASSESSMENT_ALARM', { message: comparison.message }, 'ISO');
+  }
+  if (Math.abs(dT_dt_10min) > DT_DT_THRESHOLD) {
+    AlarmManager.raiseAlarm(1, 'ENVIRONMENT_RAPID_CHANGE', { dt_dt: dT_dt_10min.toFixed(1) }, '');
+  }
+
+  /* 构造结果对象 */
+  var result = {
+    timestamp: now,
+    sensor: { T: T, RH: RH, Cl: Cl, ddER: ddER, ddInd: ddInd, Vmid: Vmid, Vdiff: Vdiff },
+    pipeline: { l1: l1, l2: l2, l3a: { ddCorrected: ddCorrected }, l3b: l3b, l3c: { crNormalized: crNormalized, towActual: towActual }, l3d: l3d, cv: cv, l4: { ddFiltered: ddFiltered, crFiltered: crFiltered } },
+    dualMode: dvResult,
+    iso: { towGrade: towGrade, towActual: towActual, corrCategory: corrCategory, salGrade: salGrade, estimatedCategory: estimatedCategory, comparison: comparison, predictions: predictions, effectiveRate: effectiveRate },
+    alarmsTriggered: []
+  };
+
+  addLog('处理完成 | T=' + T.toFixed(1) + '°C RH=' + RH.toFixed(1) + '% Δd_ER=' + ddER.toFixed(1) + 'μm Δd_Ind=' + ddInd.toFixed(1) + 'μm | Δd滤波=' + ddFiltered.toFixed(4) + 'μm CR=' + crFiltered.toFixed(4) + 'μm/yr', 'info');
+
+  renderResults(result);
+  switchTab('tab-compensation');
+  showToast('处理完成', '数据处理成功，已自动切换到补偿结果页面', 'info');
+
+  return result;
+}
+
+/* ===== 渲染函数 ===== */
+function renderResults(result) {
+  var p = result.pipeline, dm = result.dualMode, iso = result.iso, s = result.sensor;
+
+  /* 管道显示 */
+  var steps = [
+    { num: 'L1', name: '硬件差分补偿', detail: 'Rs/Rr=' + p.l1.rsRr.toFixed(4) + ' | V_mid=' + s.Vmid.toFixed(3) + 'V V_diff=' + s.Vdiff.toFixed(3) + 'V', value: p.l1.dd.toFixed(4) + ' μm', cls: 'pass' },
+    { num: 'L2', name: '比值法自校准', detail: 'V_ref波动率=' + (p.l2.fluctuation * 100).toFixed(4) + '%', value: p.l2.status, cls: p.l2.status === 'OK' ? 'pass' : 'warn' },
+    { num: 'L3A', name: '残余温度多项式修正', detail: 'T=' + s.T.toFixed(1) + '°C dT=' + (s.T - DEFAULT_T0).toFixed(1) + '°C', value: p.l3a.ddCorrected.toFixed(4) + ' μm', cls: 'pass' },
+    { num: 'L3B', name: '湿度门控过滤器', detail: 'RH=' + s.RH.toFixed(1) + '% (阈值=' + DEFAULT_RH_CRIT + '%)', value: p.l3b.valid ? '✓ 有效' : '✗ 无效(' + p.l3b.status + ')', cls: p.l3b.valid ? 'pass' : 'fail' },
+    { num: 'L3C', name: '环境因子修正', detail: 'TOW实际=' + p.l3c.towActual.toFixed(1) + ' h/yr | 参考=' + DEFAULT_TOW_REF + ' h/yr', value: p.l3c.crNormalized.toFixed(4) + ' μm/yr', cls: 'pass' },
+    { num: 'L3D', name: '剂量-响应预测', detail: 'r_pred=' + p.l3d.r_pred.toFixed(4) + ' μm/yr | 置信度=' + p.l3d.confidence.toFixed(2), value: p.cv.verdict + ' (比值=' + (isFinite(p.cv.ratio) ? p.cv.ratio.toFixed(3) : '∞') + ')', cls: p.cv.verdict === 'NORMAL' ? 'pass' : 'warn' },
+    { num: 'L4', name: '卡尔曼滤波降噪', detail: '预热=' + (appState.kalman.warmedUp ? '是' : '否') + ' | 样本数=' + appState.kalman.sampleCount, value: 'Δd=' + p.l4.ddFiltered.toFixed(4) + 'μm CR=' + p.l4.crFiltered.toFixed(4) + 'μm/yr', cls: 'pass' }
+  ];
+
+  var pipelineHTML = '';
+  for (var i = 0; i < steps.length; i++) {
+    var st = steps[i];
+    pipelineHTML += '<div class="pipeline-step ' + st.cls + '"><div class="step-num">' + st.num + '</div><div class="step-info"><div class="step-name">' + st.name + '</div><div class="step-detail">' + st.detail + '</div></div><div class="step-value">' + st.value + '</div></div>';
+  }
+  document.getElementById('pipelineDisplay').innerHTML = pipelineHTML;
+
+  /* 卡尔曼状态 */
+  document.getElementById('kalman_delta_d').textContent = p.l4.ddFiltered.toFixed(4) + ' μm';
+  document.getElementById('kalman_cr').textContent = p.l4.crFiltered.toFixed(4) + ' μm/yr';
+  document.getElementById('kalman_samples').textContent = appState.kalman.sampleCount;
+  document.getElementById('kalman_warmup').textContent = appState.kalman.warmedUp ? '已预热 ✓' : '未预热';
+  document.getElementById('kalman_warmup').className = 'stat-value ' + (appState.kalman.warmedUp ? 'good' : 'warn');
+
+  /* 双模验证 */
+  var statusClass = dm.status === 'DUAL_CONSISTENT' ? 'good' : (dm.alarm_level >= 4 ? 'bad' : 'warn');
+  var valHTML = '<div class="result-row"><span class="result-label">状态:</span><span class="result-value ' + statusClass + '">' + dm.status + '</span></div>';
+  valHTML += '<div class="result-row"><span class="result-label">CR_ER:</span><span class="result-value">' + dm.cr_er.toFixed(4) + ' μm/yr</span></div>';
+  valHTML += '<div class="result-row"><span class="result-label">CR_Inductive:</span><span class="result-value">' + dm.cr_inductive.toFixed(4) + ' μm/yr</span></div>';
+  valHTML += '<div class="result-row"><span class="result-label">CR_out:</span><span class="result-value info">' + dm.cr_out.toFixed(4) + ' μm/yr</span></div>';
+  valHTML += '<div class="result-row"><span class="result-label">差异比例:</span><span class="result-value">' + (dm.diff * 100).toFixed(2) + '%</span></div>';
+  valHTML += '<div class="result-row"><span class="result-label">判定:</span><span class="result-value ' + statusClass + '" style="font-size:0.78rem">' + dm.verdict + '</span></div>';
+  document.getElementById('validationResult').innerHTML = valHTML;
+
+  /* Eta 仪表盘 */
+  var eta = dm.eta;
+  var etaClass = eta > ETA_THRESHOLD_SEVERE ? 'danger' : (eta > ETA_THRESHOLD_PITTING ? 'warning' : 'safe');
+  document.getElementById('etaDisplay').innerHTML = '<div class="eta-circle ' + etaClass + '"><div class="eta-value">' + eta.toFixed(2) + '</div></div><div style="margin-top:8px;font-size:0.8rem;color:var(--text-secondary)">η ≤ 3.0 安全 | 3.0 &lt; η ≤ 5.0 风险 | η &gt; 5.0 穿孔风险</div>';
+
+  /* ISO 评估结果 */
+  var isoHTML = '<div class="result-row"><span class="result-label">TOW等级:</span><span class="result-value info">' + iso.towGrade.label + ' (' + iso.towGrade.desc + ')</span></div>';
+  isoHTML += '<div class="result-row"><span class="result-label">年湿润时间:</span><span class="result-value">' + iso.towActual.toFixed(1) + ' h/yr</span></div>';
+  isoHTML += '<div class="result-row"><span class="result-label">腐蚀性等级:</span><span class="result-value ' + (iso.corrCategory.label === 'CX' ? 'bad' : 'info') + '">' + iso.corrCategory.label + ' (' + iso.corrCategory.desc + ')</span></div>';
+  isoHTML += '<div class="result-row"><span class="result-label">有效腐蚀速率:</span><span class="result-value">' + iso.effectiveRate.toFixed(2) + ' μm/yr</span></div>';
+  isoHTML += '<div class="result-row"><span class="result-label">盐度等级:</span><span class="result-value">' + iso.salGrade.label + ' (' + iso.salGrade.desc + ')</span></div>';
+  isoHTML += '<div class="result-row"><span class="result-label">环境估计等级:</span><span class="result-value">' + iso.estimatedCategory.label + ' (' + iso.estimatedCategory.desc + ')</span></div>';
+  isoHTML += '<div class="result-row"><span class="result-label">实测vs估计:</span><span class="result-value ' + (iso.comparison.alarm ? 'bad' : 'good') + '">' + iso.comparison.message + '</span></div>';
+  document.getElementById('isoResult').innerHTML = isoHTML;
+
+  /* TOW 统计 */
+  document.getElementById('towDisplay').innerHTML = '<div class="result-row"><span class="result-label">累计湿润小时:</span><span class="result-value">' + appState.towHours + ' h</span></div><div class="result-row"><span class="result-label">累计总小时:</span><span class="result-value">' + appState.totalTowHours + ' h</span></div><div class="result-row"><span class="result-label">年化TOW:</span><span class="result-value info">' + iso.towActual.toFixed(1) + ' h/yr</span></div><div class="result-row"><span class="result-label">TOW等级:</span><span class="result-value info">' + iso.towGrade.label + ' - ' + iso.towGrade.desc + '</span></div>';
+
+  /* 长期预测 */
+  var predYears = [1, 5, 10, 25];
+  var maxPred = 0;
+  for (var y = 0; y < predYears.length; y++) { if (iso.predictions[predYears[y]] > maxPred) maxPred = iso.predictions[predYears[y]]; }
+  if (maxPred <= 0) maxPred = 1;
+  var predHTML = '';
+  for (var py = 0; py < predYears.length; py++) {
+    var yr = predYears[py];
+    var val = iso.predictions[yr];
+    var pct = Math.min(100, (val / maxPred) * 100);
+    predHTML += '<div class="prediction-bar-item"><span class="year-label">' + yr + '年</span><div class="bar-track"><div class="bar-fill" style="width:' + pct + '%"></div><span class="bar-value">' + val.toFixed(1) + ' μm</span></div></div>';
+  }
+  document.getElementById('predictionBars').innerHTML = predHTML;
+
+  /* 等级卡片 */
+  var cardClass = function(cat) { if (cat.label === 'C1') return 'c1'; if (cat.label === 'CX') return 'cx'; return 'default'; };
+  document.getElementById('gradeCards').innerHTML =
+    '<div class="grade-card ' + cardClass(iso.corrCategory) + '"><div class="grade-label">' + iso.corrCategory.label + '</div><div class="grade-name">实测腐蚀等级 - ' + iso.corrCategory.desc + '</div></div>' +
+    '<div class="grade-card ' + cardClass(iso.estimatedCategory) + '"><div class="grade-label">' + iso.estimatedCategory.label + '</div><div class="grade-name">环境估计等级 - ' + iso.estimatedCategory.desc + '</div></div>' +
+    '<div class="grade-card default"><div class="grade-label" style="color:#39d2c0">' + iso.towGrade.label + '</div><div class="grade-name">TOW等级 - ' + iso.towGrade.desc + '</div></div>' +
+    '<div class="grade-card default"><div class="grade-label" style="color:#a371f7">' + iso.salGrade.label + '</div><div class="grade-name">盐度等级 - ' + iso.salGrade.desc + '</div></div>';
+
+  /* 标定曲线 */
+  var calibHTML = '';
+  var points = DEFAULT_CALIBRATION_POINTS;
+  for (var ci = 0; ci < points.length; ci++) {
+    calibHTML += '<tr><td>' + points[ci][0].toFixed(2) + '</td><td>' + points[ci][1].toFixed(2) + '</td></tr>';
+  }
+  document.getElementById('calibCurveBody').innerHTML = calibHTML;
+
+  /* 刷新告警 */
+  refreshAlarmUI();
+}
+
+function refreshAlarmUI() {
+  var activeAlarms = [];
+  for (var i = 0; i < appState.alarms.length; i++) {
+    if (appState.alarms[i].status === 'ACTIVE' || appState.alarms[i].status === 'ACKNOWLEDGED') {
+      activeAlarms.push(appState.alarms[i]);
+    }
+  }
+
+  var noAlarms = document.getElementById('noAlarms');
+  var table = document.getElementById('activeAlarmsTable');
+  var body = document.getElementById('activeAlarmsBody');
+
+  if (activeAlarms.length === 0) {
+    noAlarms.style.display = 'block';
+    table.style.display = 'none';
+  } else {
+    noAlarms.style.display = 'none';
+    table.style.display = '';
+  }
+
+  body.innerHTML = '';
+  for (var j = 0; j < activeAlarms.length; j++) {
+    var a = activeAlarms[j];
+    var lvlClass = 'l' + a.level;
+    var stClass = a.status.toLowerCase();
+    var timeStr = new Date(a.timestamp).toLocaleTimeString('zh-CN');
+    body.innerHTML += '<tr><td style="white-space:nowrap">' + timeStr + '</td><td><span class="alarm-level ' + lvlClass + '">L' + a.level + ' ' + a.severity + '</span></td><td>' + a.alarmType + '</td><td style="max-width:250px;overflow:hidden;text-overflow:ellipsis">' + a.message + '</td><td><span class="alarm-status ' + stClass + '">' + a.status + '</span></td><td><button class="btn btn-sm ' + (a.status === 'ACTIVE' ? 'btn-warning' : 'btn-success') + '" onclick="handleAlarmAction(\'' + a.id + '\', \'' + a.status + '\')">' + (a.status === 'ACTIVE' ? '确认' : '解决') + '</button></td></tr>';
+  }
+
+  /* 历史告警 */
+  var histBody = document.getElementById('alarmHistoryBody');
+  histBody.innerHTML = '';
+  var history = appState.alarmHistory.slice().reverse();
+  for (var k = 0; k < history.length; k++) {
+    var ha = history[k];
+    var hlvlClass = 'l' + ha.level;
+    var hstClass = ha.status === 'ACTIVE' ? 'active' : (ha.status === 'ACKNOWLEDGED' ? 'acknowledged' : 'resolved');
+    var hTimeStr = new Date(ha.timestamp).toLocaleTimeString('zh-CN');
+    histBody.innerHTML += '<tr><td style="white-space:nowrap">' + hTimeStr + '</td><td><span class="alarm-level ' + hlvlClass + '">L' + ha.level + '</span></td><td>' + ha.alarmType + '</td><td style="max-width:250px;overflow:hidden;text-overflow:ellipsis">' + ha.message + '</td><td><span class="alarm-status ' + hstClass + '">' + ha.status + '</span></td></tr>';
+  }
+
+  /* 告警统计 */
+  var stats = AlarmManager.getStats();
+  document.getElementById('stat_total').textContent = stats.total;
+  document.getElementById('stat_active').textContent = stats.active;
+  document.getElementById('stat_l1').textContent = stats.l1;
+  document.getElementById('stat_l2').textContent = stats.l2;
+  document.getElementById('stat_l3').textContent = stats.l3;
+  document.getElementById('stat_l4').textContent = stats.l4;
+
+  /* 更新徽章 */
+  var badge = document.getElementById('alarmBadge');
+  var activeCount = stats.active;
+  if (activeCount > 0) {
+    badge.style.display = 'inline-block';
+    badge.textContent = activeCount;
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function handleAlarmAction(alarmId, status) {
+  if (status === 'ACTIVE') {
+    AlarmManager.acknowledgeAlarm(alarmId);
+  } else if (status === 'ACKNOWLEDGED') {
+    AlarmManager.resolveAlarm(alarmId);
+  }
+}
+
+/* ===== UI 辅助函数 ===== */
+function switchTab(tabId) {
+  var tabs = document.querySelectorAll('.tab-btn');
+  var contents = document.querySelectorAll('.tab-content');
+  for (var i = 0; i < tabs.length; i++) {
+    tabs[i].classList.remove('active');
+  }
+  for (var j = 0; j < contents.length; j++) {
+    contents[j].classList.remove('active');
+  }
+  var targetTab = document.querySelector('[data-tab="' + tabId + '"]');
+  if (targetTab) targetTab.classList.add('active');
+  var targetContent = document.getElementById(tabId);
+  if (targetContent) targetContent.classList.add('active');
+}
+
+function addLog(msg, level) {
+  if (!level) level = 'info';
+  var now = new Date();
+  var ts = now.toLocaleTimeString('zh-CN');
+  appState.processingLog.push({ ts: ts, msg: msg, level: level });
+  if (appState.processingLog.length > 100) appState.processingLog.shift();
+
+  var logDiv = document.getElementById('inputLog');
+  var entries = '';
+  var logEntries = appState.processingLog.slice().reverse();
+  for (var i = 0; i < logEntries.length; i++) {
+    entries += '<div class="log-entry ' + logEntries[i].level + '"><span class="ts">[' + logEntries[i].ts + ']</span>' + logEntries[i].msg + '</div>';
+  }
+  logDiv.innerHTML = entries;
+}
+
+function showToast(title, msg, level) {
+  if (!level) level = 'info';
+  var container = document.getElementById('toastContainer');
+  var toast = document.createElement('div');
+  toast.className = 'toast ' + level;
+  toast.innerHTML = '<strong>' + title + '</strong><br>' + msg;
+  container.appendChild(toast);
+  setTimeout(function() { toast.remove(); }, 4000);
+}
+
+function clearResults() {
+  appState.prevTimestamp = null;
+  appState.prevDeltaD = null;
+  appState.prevT = null;
+  appState.prevRH = null;
+  appState.prevDeltaD_ER = null;
+  appState.prevDeltaD_Inductive = null;
+  appState.prevCR_ER_EWMA = null;
+  appState.prevCR_Inductive_EWMA = null;
+  appState.vRefBuffer = [];
+  appState.consecutiveInvalid = 0;
+  appState.runningTSum = 0; appState.runningRHSum = 0; appState.runningClSum = 0; appState.runningCount = 0;
+  appState.towHours = 0; appState.totalTowHours = 0; appState.lastHourBucket = null;
+  appState.processingLog = [];
+  if (appState.kalman) appState.kalman.reset();
+  appState.alarms = [];
+  appState.alarmHistory = [];
+
+  document.getElementById('pipelineDisplay').innerHTML = '<div class="empty-state"><span class="icon">⚙</span><br>尚未处理数据，请在"数据输入"页面提交传感器数据</div>';
+  document.getElementById('kalman_delta_d').textContent = '--';
+  document.getElementById('kalman_cr').textContent = '--';
+  document.getElementById('kalman_samples').textContent = '0';
+  document.getElementById('kalman_warmup').textContent = '未预热';
+  document.getElementById('kalman_warmup').className = 'stat-value';
+  document.getElementById('validationResult').innerHTML = '<div class="empty-state"><span class="icon">✅</span><br>等待数据处理...</div>';
+  document.getElementById('etaDisplay').innerHTML = '<div class="eta-circle safe"><div class="eta-value">1.00</div></div><div style="margin-top:8px;font-size:0.8rem;color:var(--text-secondary)">η ≤ 3.0 安全 | 3.0 &lt; η ≤ 5.0 风险 | η &gt; 5.0 穿孔风险</div>';
+  document.getElementById('isoResult').innerHTML = '<div class="empty-state"><span class="icon">🌎</span><br>等待数据处理...</div>';
+  document.getElementById('towDisplay').innerHTML = '<div class="empty-state">等待数据...</div>';
+  document.getElementById('predictionBars').innerHTML = '<div class="empty-state">等待数据...</div>';
+  document.getElementById('gradeCards').innerHTML = '<div class="empty-state" style="grid-column:1/-1">等待评估结果...</div>';
+  document.getElementById('inputLog').innerHTML = '<div class="empty-state"><span class="icon">📋</span><br>日志已清空</div>';
+  refreshAlarmUI();
+  showToast('已清空', '所有数据与状态已重置', 'info');
+}
+
+function applyPreset(preset) {
+  var presets = {
+    'normal':            { T: 25.0, RH: 65.0, Cl: 5.0,  dER: 0.50, dInd: 0.48, Vmid: 2.500, Vdiff: 0.012, Leq: 0.001, df: 0.05, dt: 600 },
+    'corrosive':         { T: 30.0, RH: 85.0, Cl: 50.0, dER: 1.20, dInd: 1.10, Vmid: 2.450, Vdiff: 0.050, Leq: 0.002, df: 0.20, dt: 600 },
+    'pitting':           { T: 28.0, RH: 78.0, Cl: 30.0, dER: 2.50, dInd: 1.60, Vmid: 2.300, Vdiff: 0.200, Leq: 0.003, df: 0.50, dt: 600 },
+    'temperatureshock':  { T: 15.0, RH: 50.0, Cl: 3.0,  dER: 0.85, dInd: 0.55, Vmid: 2.480, Vdiff: 0.035, Leq: 0.001, df: 0.08, dt: 600 },
+    'emergency':         { T: 35.0, RH: 90.0, Cl: 200.0,dER: 5.00, dInd: 2.80, Vmid: 2.100, Vdiff: 0.450, Leq: 0.005, df: 1.00, dt: 600 }
+  };
+  var p = presets[preset];
+  if (!p) return;
+  document.getElementById('input_T').value = p.T;
+  document.getElementById('input_RH').value = p.RH;
+  document.getElementById('input_Cl').value = p.Cl;
+  document.getElementById('input_dER').value = p.dER;
+  document.getElementById('input_dInd').value = p.dInd;
+  document.getElementById('input_Vmid').value = p.Vmid;
+  document.getElementById('input_Vdiff').value = p.Vdiff;
+  document.getElementById('input_Leq').value = p.Leq;
+  document.getElementById('input_df').value = p.df;
+  document.getElementById('input_dt').value = p.dt;
+  showToast('预设加载', '已加载预设: ' + preset, 'info');
+}
+
+/* ===== 事件监听 ===== */
+document.addEventListener('DOMContentLoaded', function() {
+  /* Tab 切换 */
+  var tabBtns = document.querySelectorAll('.tab-btn');
+  for (var i = 0; i < tabBtns.length; i++) {
+    tabBtns[i].addEventListener('click', function() {
+      var tabId = this.getAttribute('data-tab');
+      switchTab(tabId);
+    });
+  }
+
+  /* 回车键快捷提交 */
+  document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.key === 'Enter') {
+      e.preventDefault();
+      processSingleSample();
+    }
+  });
+});
+</script>
+</body>
+</html>

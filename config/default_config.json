@@ -1,0 +1,292 @@
+{
+    "version": "1.0.0",
+    "description": "Default configuration for Wind Turbine Internal Corrosion Detection System",
+
+    "sensor": {
+        "d0": {
+            "value": 100.0,
+            "unit": "\u03bcm",
+            "description": "Initial electrode thickness"
+        },
+        "electrode_area": {
+            "value": 1e-4,
+            "unit": "m\u00b2",
+            "description": "Electrode surface area (1 cm\u00b2)"
+        },
+        "f0": {
+            "value": 10000000,
+            "unit": "Hz",
+            "description": "Excitation frequency (10 MHz)"
+        },
+        "adc_resolution": {
+            "value": 16,
+            "unit": "bits",
+            "description": "ADC resolution"
+        },
+        "adc_vref": {
+            "value": 3.3,
+            "unit": "V",
+            "description": "ADC reference voltage"
+        }
+    },
+
+    "sampling": {
+        "normal_period": {
+            "value": 600,
+            "unit": "seconds",
+            "description": "Normal sampling period (10 minutes)"
+        },
+        "emergency_period": {
+            "value": 60,
+            "unit": "seconds",
+            "description": "Emergency sampling period"
+        },
+        "emergency_duration": {
+            "value": 1800,
+            "unit": "seconds",
+            "description": "Emergency mode duration (30 minutes)"
+        },
+        "data_buffer_size": {
+            "value": 1000,
+            "unit": "records",
+            "description": "Maximum records in memory buffer"
+        }
+    },
+
+    "algorithm": {
+        "RH_crit": {
+            "value": 76.0,
+            "unit": "%",
+            "description": "Critical relative humidity for corrosion"
+        },
+        "epsilon_noise_multiplier": {
+            "value": 3.0,
+            "unit": "dimensionless",
+            "description": "Noise multiplier for error compensation"
+        },
+        "alpha_res": {
+            "value": 0.0,
+            "unit": "\u03a9/K",
+            "description": "Resistance temperature coefficient"
+        },
+        "beta_res": {
+            "value": 0.0,
+            "unit": "\u03a9/K\u00b2",
+            "description": "Resistance temperature coefficient (quadratic)"
+        },
+        "T0_ref": {
+            "value": 25.0,
+            "unit": "\u00b0C",
+            "description": "Reference temperature for compensation"
+        },
+        "k_S": {
+            "value": 0.01,
+            "unit": "dimensionless",
+            "description": "Sensitivity coefficient for inductive sensor"
+        },
+        "TOW_ref": {
+            "value": 4000,
+            "unit": "hours/year",
+            "description": "Reference Time of Wetness"
+        },
+        "CR_ER_weight": {
+            "value": 0.6,
+            "unit": "dimensionless",
+            "description": "Weight for Electrical Resistance sensor in fusion"
+        },
+        "CR_Inductive_weight": {
+            "value": 0.4,
+            "unit": "dimensionless",
+            "description": "Weight for Inductive sensor in fusion"
+        },
+        "filter_window_size": {
+            "value": 5,
+            "unit": "samples",
+            "description": "Moving average filter window size"
+        },
+        "outlier_std_threshold": {
+            "value": 3.0,
+            "unit": "dimensionless",
+            "description": "Standard deviation threshold for outlier detection"
+        }
+    },
+
+    "alarm": {
+        "thresholds": {
+            "level_1": {
+                "CR_threshold": 0.01,
+                "unit": "mm/year",
+                "description": "Low corrosion rate warning"
+            },
+            "level_2": {
+                "CR_threshold": 0.05,
+                "unit": "mm/year",
+                "description": "Moderate corrosion rate warning"
+            },
+            "level_3": {
+                "CR_threshold": 0.10,
+                "unit": "mm/year",
+                "description": "High corrosion rate warning"
+            },
+            "level_4": {
+                "CR_threshold": 0.20,
+                "unit": "mm/year",
+                "description": "Critical corrosion rate alarm"
+            }
+        },
+        "alarm_cooldown": {
+            "value": 300,
+            "unit": "seconds",
+            "description": "Minimum interval between same-level alarms"
+        },
+        "auto_resolve_timeout": {
+            "value": 3600,
+            "unit": "seconds",
+            "description": "Auto-resolve alarms after this duration"
+        }
+    },
+
+    "comms": {
+        "lora": {
+            "frequency": {
+                "value": 433.0,
+                "unit": "MHz",
+                "description": "LoRa communication frequency"
+            },
+            "spreading_factor": {
+                "value": 7,
+                "unit": "dimensionless",
+                "description": "LoRa spreading factor (7-12)"
+            },
+            "bandwidth": {
+                "value": 125,
+                "unit": "kHz",
+                "description": "LoRa bandwidth"
+            },
+            "coding_rate": {
+                "value": 5,
+                "unit": "dimensionless",
+                "description": "LoRa coding rate (5=4/5)"
+            },
+            "tx_power": {
+                "value": 14,
+                "unit": "dBm",
+                "description": "LoRa transmission power"
+            }
+        },
+        "nb_iot": {
+            "apn": {
+                "value": "ctnet",
+                "description": "NB-IoT Access Point Name"
+            },
+            "band": {
+                "value": 8,
+                "unit": "dimensionless",
+                "description": "NB-IoT frequency band"
+            },
+            "retry_count": {
+                "value": 3,
+                "unit": "attempts",
+                "description": "NB-IoT connection retry count"
+            },
+            "retry_interval": {
+                "value": 10,
+                "unit": "seconds",
+                "description": "NB-IoT retry interval"
+            }
+        },
+        "cloud": {
+            "server_address": {
+                "value": "mqtt.cloud.example.com",
+                "description": "Cloud MQTT server address"
+            },
+            "server_port": {
+                "value": 8883,
+                "description": "Cloud MQTT server port (TLS)"
+            },
+            "mqtt_topic_prefix": {
+                "value": "wind_turbine/corrosion/",
+                "description": "MQTT topic prefix"
+            },
+            "qos": {
+                "value": 1,
+                "description": "MQTT Quality of Service level"
+            },
+            "keepalive": {
+                "value": 60,
+                "unit": "seconds",
+                "description": "MQTT keepalive interval"
+            }
+        },
+        "serial": {
+            "port": {
+                "value": "COM3",
+                "description": "Default serial port"
+            },
+            "baudrate": {
+                "value": 115200,
+                "unit": "bps",
+                "description": "Serial baud rate"
+            },
+            "timeout": {
+                "value": 2.0,
+                "unit": "seconds",
+                "description": "Serial read timeout"
+            }
+        }
+    },
+
+    "storage": {
+        "database": {
+            "path": {
+                "value": "data/sensor_data.db",
+                "description": "SQLite database file path"
+            }
+        },
+        "data_retention_days": {
+            "value": 365,
+            "unit": "days",
+            "description": "Data retention period"
+        },
+        "backup_interval": {
+            "value": 86400,
+            "unit": "seconds",
+            "description": "Database backup interval (24 hours)"
+        }
+    },
+
+    "logging": {
+        "level": {
+            "value": "INFO",
+            "description": "Logging level (DEBUG/INFO/WARNING/ERROR/CRITICAL)"
+        },
+        "log_dir": {
+            "value": "logs",
+            "description": "Directory for log files"
+        },
+        "max_file_size": {
+            "value": 10485760,
+            "unit": "bytes",
+            "description": "Maximum log file size (10 MB)"
+        },
+        "backup_count": {
+            "value": 5,
+            "description": "Number of log file backups to keep"
+        }
+    },
+
+    "validation_ranges": {
+        "sensor.d0.value": {"min": 50.0, "max": 500.0},
+        "sensor.f0.value": {"min": 100000, "max": 50000000},
+        "sampling.normal_period.value": {"min": 10, "max": 86400},
+        "sampling.emergency_period.value": {"min": 5, "max": 3600},
+        "sampling.emergency_duration.value": {"min": 60, "max": 86400},
+        "algorithm.RH_crit.value": {"min": 50.0, "max": 100.0},
+        "algorithm.epsilon_noise_multiplier.value": {"min": 0.5, "max": 10.0},
+        "algorithm.TOW_ref.value": {"min": 100, "max": 8760},
+        "algorithm.CR_ER_weight.value": {"min": 0.0, "max": 1.0},
+        "algorithm.CR_Inductive_weight.value": {"min": 0.0, "max": 1.0},
+        "lora.frequency.value": {"min": 410.0, "max": 525.0},
+        "lora.spreading_factor.value": {"min": 7, "max": 12}
+    }
+}

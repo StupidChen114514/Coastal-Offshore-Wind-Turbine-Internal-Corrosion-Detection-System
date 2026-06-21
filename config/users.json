@@ -1,0 +1,57 @@
+{
+  "admin": {
+    "password_hash": "9e5eea5928db587df7195286d0a3ac13042b5c87abe4ba86faa783517dd07550",
+    "salt": "466e9dd2c1627ad225363b9a5a09ecbf19b8540b94f618c30902f1ef84724725",
+    "role": "Admin",
+    "created_at": 1779785298.01214
+  },
+  "viewer1": {
+    "password_hash": "4782b23dc8199818bb0ce3e564fafb6814335b2878ff1d98722527a14f803263",
+    "salt": "123f3525dd5ebb6bdd88fa599a26e6b5255d2a96a83bb9f2227e0b80667dd34d",
+    "role": "Viewer",
+    "created_at": 1779785298.0883079,
+    "created_by": "admin"
+  },
+  "operator1": {
+    "password_hash": "8d2fd5cb2838f40293a9c8a2c6ee9b3ee058ba247279092c2c0f3050738c8dab",
+    "salt": "acc06fa9d4abfd684d2725899ad843b370f3ecb101981254cc8e9ed5e91f182b",
+    "role": "Operator",
+    "created_at": 1779785298.1287954,
+    "created_by": "admin"
+  },
+  "viewer_42cb1d2e": {
+    "password_hash": "8634071d5462ae9d811a357d075259c5ca0aea74998cf8249f120ac6b1ff9bf2",
+    "salt": "2b6dd3daab39559109b382526f0bca2d1ef76cda83d8dc9ec6f6d62ee337fee4",
+    "role": "Viewer",
+    "created_at": 1779787285.1633554,
+    "created_by": "admin"
+  },
+  "viewer_67443a05": {
+    "password_hash": "c34310917e1edefba568409d27db97685e3b33191a9cefb4c1ce2d88f7ec0ea4",
+    "salt": "259e2470b479bb27189dbb0edb8cffea80934c56ee11bba07a054a01476f9539",
+    "role": "Viewer",
+    "created_at": 1779787374.2004719,
+    "created_by": "admin"
+  },
+  "viewer_d0884d95": {
+    "password_hash": "73efc4c05ab72fcc805b68cf60cd7bd34790b5f3680842fdf9c1032ccd9bd922",
+    "salt": "54606d4fb2317883c20e668648d55d848bb0d1ffee2f13818cfc996e5017098f",
+    "role": "Viewer",
+    "created_at": 1779787460.3973386,
+    "created_by": "admin"
+  },
+  "viewer_ef31f4ca": {
+    "password_hash": "9ee158fc41680346302bfc40f970534b23c176f132222ae19d4675a56fbfa3d4",
+    "salt": "d5214af2d5e45f4b18bc50993c0e2fe6d1295781f89e641952701149972aa1f1",
+    "role": "Viewer",
+    "created_at": 1779787622.9198058,
+    "created_by": "admin"
+  },
+  "op_6a45c450": {
+    "password_hash": "1f7735d4e0de8581e57afd7eeef8e9b6d46d7e2306ff550b48ba9afeef7e795e",
+    "salt": "581f46be4936c1914df0e55899a75c0e124864f1e415bd175c0e3740922a3894",
+    "role": "Operator",
+    "created_at": 1779787628.108806,
+    "created_by": "admin"
+  }
+}
